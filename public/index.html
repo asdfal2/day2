@@ -1,43 +1,374 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>달력 운동</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .calendar-day {
+            transition: all 0.2s ease;
+        }
+        .calendar-day:hover {
+            transform: scale(1.05);
+        }
+        .selected-day {
+            background: white;
+            border: 2px solid #333;
+            color: #333;
+            transform: scale(1.1);
+        }
+        .goal-card {
+            background: white;
+            border: 2px solid #ddd;
+            color: #333;
+        }
+        .category-btn {
+            transition: all 0.3s ease;
+        }
+        .category-btn:hover {
+            transform: translateY(-2px);
+        }
+        .category-selected {
+            background: white;
+            border: 2px solid #333;
+            color: #333;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 헤더 -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">달력 운동</h1>
+            <p class="text-gray-600">매일의 목표를 설정하고 달성해보세요!</p>
+        </div>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+        <!-- 오늘의 목표 버튼 -->
+        <div class="text-center mb-8">
+            <button id="todayGoalBtn" class="bg-white text-gray-800 border-2 border-gray-300 px-8 py-3 rounded-full font-semibold text-lg shadow-lg hover:shadow-xl hover:bg-gray-50 transform hover:scale-105 transition-all duration-300">
+                오늘의 목표 설정
+            </button>
+        </div>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+        <!-- 달력 -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <button id="prevMonth" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                </button>
+                <h2 id="currentMonth" class="text-2xl font-bold text-gray-800"></h2>
+                <button id="nextMonth" class="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-7 gap-2 mb-4">
+                <div class="text-center font-semibold text-gray-600 py-2">일</div>
+                <div class="text-center font-semibold text-gray-600 py-2">월</div>
+                <div class="text-center font-semibold text-gray-600 py-2">화</div>
+                <div class="text-center font-semibold text-gray-600 py-2">수</div>
+                <div class="text-center font-semibold text-gray-600 py-2">목</div>
+                <div class="text-center font-semibold text-gray-600 py-2">금</div>
+                <div class="text-center font-semibold text-gray-600 py-2">토</div>
+            </div>
+            
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2">
+                <!-- 달력 날짜들이 여기에 생성됩니다 -->
+            </div>
+        </div>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+        <!-- 선택된 날짜 정보 -->
+        <div id="selectedDateInfo" class="bg-white rounded-2xl shadow-xl p-6 max-w-2xl mx-auto mb-8 hidden">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">선택된 날짜: <span id="selectedDateText"></span></h3>
+            <div id="goalsList" class="space-y-3">
+                <!-- 목표들이 여기에 표시됩니다 -->
+            </div>
+        </div>
+
+        <!-- 목표 설정 모달 -->
+        <div id="goalModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+                <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">목표 설정</h3>
+                
+                <!-- 카테고리 선택 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">카테고리 선택</label>
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <button class="category-btn bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-lg font-medium" data-category="운동">🏃‍♂️ 운동</button>
+                        <button class="category-btn bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-lg font-medium" data-category="노래">🎵 노래</button>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="category-btn bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-lg font-medium flex-1" data-category="기타">📝 기타</button>
+                        <input id="customCategory" type="text" placeholder="직접 입력" class="px-4 py-3 border border-gray-300 rounded-lg flex-1 hidden">
+                    </div>
+                </div>
+
+                <!-- 목표 입력 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">목표 내용</label>
+                    <textarea id="goalContent" placeholder="오늘의 목표를 입력하세요..." class="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none h-24"></textarea>
+                </div>
+
+                <!-- 시간 설정 -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">목표 시간</label>
+                    <input id="goalTime" type="time" class="w-full px-4 py-3 border border-gray-300 rounded-lg">
+                </div>
+
+                <!-- 버튼들 -->
+                <div class="flex gap-3">
+                    <button id="cancelGoal" class="flex-1 px-4 py-3 bg-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-400 transition-colors">취소</button>
+                    <button id="saveGoal" class="flex-1 px-4 py-3 bg-white border-2 border-gray-300 text-gray-800 rounded-lg font-semibold hover:bg-gray-50 hover:shadow-lg transition-all">저장</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDate = null;
+        let selectedCategory = '';
+        let goals = JSON.parse(localStorage.getItem('calendarGoals')) || {};
+
+        // 현재 시간 표시 및 자동 날짜 변경
+        function updateCurrentTime() {
+            const now = new Date();
+            const today = now.toDateString();
+            
+            // 자정이 지나면 자동으로 다음 날로 이동
+            if (selectedDate && selectedDate !== today) {
+                const tomorrow = new Date(now);
+                selectDate(tomorrow.getDate());
+            }
+        }
+
+        // 달력 생성
+        function generateCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            document.getElementById('currentMonth').textContent = 
+                `${year}년 ${month + 1}월`;
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            startDate.setDate(startDate.getDate() - firstDay.getDay());
+
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                
+                const dayElement = document.createElement('div');
+                dayElement.className = `calendar-day text-center py-3 rounded-lg cursor-pointer font-medium ${
+                    date.getMonth() === month 
+                        ? 'bg-gray-50 hover:bg-blue-100 text-gray-800' 
+                        : 'text-gray-400'
+                }`;
+                
+                dayElement.textContent = date.getDate();
+                
+                // 목표가 있는 날짜 표시
+                const dateKey = date.toDateString();
+                if (goals[dateKey] && goals[dateKey].length > 0) {
+                    dayElement.classList.add('bg-green-100', 'border-2', 'border-green-300');
+                }
+                
+                dayElement.addEventListener('click', () => {
+                    if (date.getMonth() === month) {
+                        selectDate(date.getDate());
+                    }
+                });
+
+                calendarGrid.appendChild(dayElement);
+            }
+        }
+
+        // 날짜 선택
+        function selectDate(day) {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const date = new Date(year, month, day);
+            selectedDate = date.toDateString();
+
+            // 선택된 날짜 스타일 업데이트
+            document.querySelectorAll('.calendar-day').forEach(el => {
+                el.classList.remove('selected-day');
+            });
+            
+            const dayElements = document.querySelectorAll('.calendar-day');
+            dayElements[day + new Date(year, month, 1).getDay() - 1]?.classList.add('selected-day');
+
+            // 선택된 날짜 정보 표시
+            document.getElementById('selectedDateText').textContent = 
+                `${year}년 ${month + 1}월 ${day}일`;
+            document.getElementById('selectedDateInfo').classList.remove('hidden');
+            
+            displayGoals();
+        }
+
+        // 목표 표시
+        function displayGoals() {
+            const goalsList = document.getElementById('goalsList');
+            const dateGoals = goals[selectedDate] || [];
+            
+            if (dateGoals.length === 0) {
+                goalsList.innerHTML = '<p class="text-gray-500 text-center py-4">설정된 목표가 없습니다.</p>';
+                return;
+            }
+
+            goalsList.innerHTML = dateGoals.map((goal, index) => `
+                <div class="goal-card p-4 rounded-lg shadow-lg ${goal.completed ? 'opacity-75' : ''}">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700">${goal.category}</span>
+                        <span class="text-sm text-gray-600">${goal.time}</span>
+                    </div>
+                    <p class="font-medium text-gray-800 ${goal.completed ? 'line-through' : ''}">${goal.content}</p>
+                    ${goal.completed ? 
+                        '<div class="mt-2 flex items-center"><span class="text-green-500 mr-2">✅</span><span class="text-sm text-gray-600">완료됨!</span></div>' : 
+                        `<div class="mt-2 flex gap-2">
+                            <button onclick="completeGoal(${index})" class="text-sm bg-green-500 text-white hover:bg-green-600 px-3 py-1 rounded-full transition-all">성공</button>
+                            <button onclick="deleteGoal(${index})" class="text-sm bg-gray-300 text-gray-700 hover:bg-gray-400 px-3 py-1 rounded-full transition-all">삭제</button>
+                        </div>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        // 목표 완료
+        function completeGoal(index) {
+            if (!goals[selectedDate]) return;
+            
+            goals[selectedDate][index].completed = true;
+            localStorage.setItem('calendarGoals', JSON.stringify(goals));
+            displayGoals();
+            generateCalendar();
+        }
+
+        // 목표 삭제
+        function deleteGoal(index) {
+            if (!goals[selectedDate]) return;
+            
+            goals[selectedDate].splice(index, 1);
+            if (goals[selectedDate].length === 0) {
+                delete goals[selectedDate];
+            }
+            
+            localStorage.setItem('calendarGoals', JSON.stringify(goals));
+            displayGoals();
+            generateCalendar();
+        }
+
+        // 이벤트 리스너들
+        document.getElementById('todayGoalBtn').addEventListener('click', () => {
+            if (!selectedDate) {
+                const today = new Date();
+                selectDate(today.getDate());
+            }
+            document.getElementById('goalModal').classList.remove('hidden');
+        });
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            generateCalendar();
+        });
+
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            generateCalendar();
+        });
+
+        // 카테고리 선택
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.category-btn').forEach(b => {
+                    b.classList.remove('category-selected');
+                });
+                btn.classList.add('category-selected');
+                
+                selectedCategory = btn.dataset.category;
+                
+                if (selectedCategory === '기타') {
+                    document.getElementById('customCategory').classList.remove('hidden');
+                    document.getElementById('customCategory').focus();
+                } else {
+                    document.getElementById('customCategory').classList.add('hidden');
+                }
+            });
+        });
+
+        document.getElementById('customCategory').addEventListener('input', (e) => {
+            selectedCategory = e.target.value;
+        });
+
+        document.getElementById('cancelGoal').addEventListener('click', () => {
+            document.getElementById('goalModal').classList.add('hidden');
+            resetModal();
+        });
+
+        document.getElementById('saveGoal').addEventListener('click', () => {
+            const content = document.getElementById('goalContent').value.trim();
+            const time = document.getElementById('goalTime').value;
+            
+            if (!selectedCategory || !content || !time) {
+                alert('모든 항목을 입력해주세요!');
+                return;
+            }
+
+            if (!goals[selectedDate]) {
+                goals[selectedDate] = [];
+            }
+
+            goals[selectedDate].push({
+                category: selectedCategory,
+                content: content,
+                time: time,
+                completed: false
+            });
+
+            localStorage.setItem('calendarGoals', JSON.stringify(goals));
+            
+            document.getElementById('goalModal').classList.add('hidden');
+            resetModal();
+            displayGoals();
+            generateCalendar();
+        });
+
+        function resetModal() {
+            selectedCategory = '';
+            document.getElementById('goalContent').value = '';
+            document.getElementById('goalTime').value = '';
+            document.getElementById('customCategory').value = '';
+            document.getElementById('customCategory').classList.add('hidden');
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.classList.remove('category-selected');
+            });
+        }
+
+        // 초기화
+        generateCalendar();
+        
+        // 오늘 날짜 자동 선택
+        const today = new Date();
+        selectDate(today.getDate());
+
+        // 현재 시간 설정
+        const now = new Date();
+        document.getElementById('goalTime').value = 
+            `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        // 1분마다 시간 체크하여 자동 날짜 변경
+        setInterval(updateCurrentTime, 60000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97f626f2e3f0ea2c',t:'MTc1NzkxODYzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
