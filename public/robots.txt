@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://day2-omega-livid.vercel.app/sitemap.xml
